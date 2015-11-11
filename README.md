@@ -31,8 +31,8 @@ const initialState = {
   very: 'cool'
 };
 
-const storeName = 'superCoolStorageUnit';
-const replication = replicate(storeName, localforageReplicator);
+const storeKey = 'superCoolStorageUnit';
+const replication = replicate(storeKey, localforageReplicator);
 const create = compose(replication)(createStore);
 const store = create(combineReducers(reducers), initialState);
 ```

@@ -2,13 +2,13 @@ import localforage from 'localforage';
 import { unserializable, serializable, getType } from 'unserializable';
 
 const warn = console.warn.bind(console);
-const typesKey = storeName => (`__types__::${storeName}`);
+const typesKey = storeKey => (`__types__::${storeKey}`);
 
 export default {
-  init(storeName, store) {
+  init(storeKey, store) {
     Promise.all([
-      localforage.getItem(storeName),
-      localforage.getItem(typesKey(storeName))
+      localforage.getItem(storeKey),
+      localforage.getItem(typesKey(storeKey))
     ]).then(([serializableState, types]) => {
       const state = {};
 
@@ -27,7 +27,7 @@ export default {
     }, warn);
   },
 
-  postDispatch(storeName, store, action) {
+  postDispatch(storeKey, store, action) {
     const state = { ...store.getState() };
     const types = {};
 
@@ -42,8 +42,8 @@ export default {
     }
 
     Promise.all([
-      localforage.setItem(storeName, state),
-      localforage.setItem(typesKey(storeName), types)
+      localforage.setItem(storeKey, state),
+      localforage.setItem(typesKey(storeKey), types)
     ]).catch(warn);
   }
 };
