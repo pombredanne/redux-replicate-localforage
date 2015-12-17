@@ -45,14 +45,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { assignProviders } from 'react-redux-provide';
 import provideMap from 'react-redux-provide-map';
-import logger from 'redux-logger';
 import replicate from 'redux-replicate';
 import localforageReplicator from 'redux-replicate-localforage';
 import App from './components/App';
 
 const coolMap = {
   ...provideMap('coolMap', 'coolItem'),
-  middleware: logger,
   enhancer: replicate('coolMap', localforageReplicator)
 };
 
