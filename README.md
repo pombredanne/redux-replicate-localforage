@@ -18,6 +18,23 @@ npm install redux-replicate redux-replicate-localforage --save
 Use with [`redux-replicate`](https://github.com/loggur/redux-replicate).
 
 
+## Example using [`react-redux-provide`](https://github.com/loggur/react-redux-provide)
+
+```js
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { addEnhancer } from 'react-redux-provide';
+import replicate from 'redux-replicate';
+import localforageReplicator from 'redux-replicate-localforage';
+import { coolMap } from './providers/index';
+import { App } from './components/index';
+
+addEnhancer({ coolMap }, replicate('coolMap', localforageReplicator));
+
+ReactDOM.render(<App/>, document.getElementById('root'));
+```
+
+
 ## Example using `compose`
 
 ```js
@@ -35,26 +52,4 @@ const storeKey = 'superCoolStorageUnit';
 const replication = replicate(storeKey, localforageReplicator);
 const create = compose(replication)(createStore);
 const store = create(combineReducers(reducers), initialState);
-```
-
-
-## Example using [`react-redux-provide`](https://github.com/loggur/react-redux-provide)
-
-```js
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { assignProviders } from 'react-redux-provide';
-import provideMap from 'react-redux-provide-map';
-import replicate from 'redux-replicate';
-import localforageReplicator from 'redux-replicate-localforage';
-import App from './components/App';
-
-const coolMap = {
-  ...provideMap('coolMap', 'coolItem'),
-  enhancer: replicate('coolMap', localforageReplicator)
-};
-
-assignProviders({ coolMap }, { App });
-
-ReactDOM.render(<App/>, document.getElementById('root'));
 ```
