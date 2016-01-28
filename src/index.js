@@ -1,49 +1,36 @@
 import localforage from 'localforage';
-import { unserializable, serializable, getType } from 'unserializable';
+import { stringify, parse } from 'deserializable';
 
-const warn = console.warn.bind(console);
-const typesKey = storeKey => (`__types__::${storeKey}`);
+const warn = typeof console !== 'undefined'
+  ? console.warn.bind(console)
+  : () => {};
 
 export default {
-  init(storeKey, store) {
-    Promise.all([
-      localforage.getItem(storeKey),
-      localforage.getItem(typesKey(storeKey))
-    ]).then(([serializableState, types]) => {
-      const state = {};
-
-      for (let reducer in serializableState) {
-        let type = types[reducer];
-        let value = serializableState[reducer];
-
-        if (unserializable[type]) {
-          state[reducer] = unserializable[type](value);
-        } else {
-          state[reducer] = value;
-        }
-      }
-
-      store.setState(state);
-    }, warn);
-  },
-
-  postDispatch(storeKey, store, action) {
-    const state = { ...store.getState() };
-    const types = {};
-
-    for (let reducer in state) {
-      let value = state[reducer];
-      let type = getType(value);
-
-      if (type) {
-        state[reducer] = serializable[type](value);
-        types[reducer] = type;
-      }
+  init(storeKey, store, setReady) {
+    if (!store._localforageInitialized) {
+      store._localforageInitialized = {};
     }
 
-    Promise.all([
-      localforage.setItem(storeKey, state),
-      localforage.setItem(typesKey(storeKey), types)
-    ]).catch(warn);
+    localforage.getItem(storeKey).then(serializedState => {
+      const state = parse(serializedState);
+
+      setReady(true);
+
+      if (store._localforageInitialized[storeKey]) {
+        store.setState(state);
+      } else {
+        store._localforageInitialized[storeKey] = true;
+        store.setState({ ...state, ...store.getState() });
+      }
+    }, (error) => {
+      warn(error);
+      setReady(true);
+    });
+  },
+
+  postReduction(storeKey, state, action) {
+    const serializedState = stringify(state);
+
+    localforage.setItem(storeKey, serializedState).catch(warn);
   }
 };

@@ -23,13 +23,13 @@ Use with [`redux-replicate`](https://github.com/loggur/redux-replicate).
 ```js
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { addEnhancer } from 'react-redux-provide';
+import { unshiftEnhancer } from 'react-redux-provide';
 import replicate from 'redux-replicate';
 import localforageReplicator from 'redux-replicate-localforage';
 import { coolMap } from './providers/index';
 import { App } from './components/index';
 
-addEnhancer({ coolMap }, replicate('coolMap', localforageReplicator));
+unshiftEnhancer({ coolMap }, replicate('coolMap', localforageReplicator));
 
 ReactDOM.render(<App/>, document.getElementById('root'));
 ```
