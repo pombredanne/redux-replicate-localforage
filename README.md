@@ -17,6 +17,30 @@ npm install redux-replicate redux-replicate-localforage --save
 
 Use with [`redux-replicate`](https://github.com/loggur/redux-replicate).
 
+```js
+localforageReplicator (Optional Object keys)
+```
+
+The `keys` argument becomes the `keys` key in your replicator.
+
+So to replicate all keys:
+```js
+import replicate from 'redux-replicate';
+import localforageReplicator from 'redux-replicate-localforage';
+
+replicate('someStore', localforageReplicator())
+```
+
+Only `someKey`:
+```js
+replicate('someStore', localforageReplicator({ someKey: true }))
+```
+
+All keys except for `someKey`:
+```js
+replicate('someStore', localforageReplicator({ someKey: false }))
+```
+
 
 ## Example using [`react-redux-provide`](https://github.com/loggur/react-redux-provide)
 
@@ -29,7 +53,7 @@ import localforageReplicator from 'redux-replicate-localforage';
 import { coolMap } from './providers/index';
 import { App } from './components/index';
 
-unshiftEnhancer({ coolMap }, replicate('coolMap', localforageReplicator));
+unshiftEnhancer({ coolMap }, replicate('coolMap', localforageReplicator()));
 
 ReactDOM.render(<App/>, document.getElementById('root'));
 ```
@@ -49,7 +73,7 @@ const initialState = {
 };
 
 const storeKey = 'superCoolStorageUnit';
-const replication = replicate(storeKey, localforageReplicator);
+const replication = replicate(storeKey, localforageReplicator());
 const create = compose(replication)(createStore);
 const store = create(combineReducers(reducers), initialState);
 ```

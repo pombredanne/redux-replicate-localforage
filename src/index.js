@@ -5,7 +5,9 @@ const warn = typeof console !== 'undefined'
   ? console.warn.bind(console)
   : () => {};
 
-export default {
+const localforageReplicator = keys => () => ({
+  keys,
+
   init(storeKey, store, setReady) {
     if (!store._localforageInitialized) {
       store._localforageInitialized = {};
@@ -22,7 +24,7 @@ export default {
         store._localforageInitialized[storeKey] = true;
         store.setState({ ...state, ...store.getState() });
       }
-    }, (error) => {
+    }, error => {
       warn(error);
       setReady(true);
     });
@@ -33,4 +35,6 @@ export default {
 
     localforage.setItem(storeKey, serializedState).catch(warn);
   }
-};
+});
+
+export default localforageReplicator;
