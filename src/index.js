@@ -5,36 +5,55 @@ const warn = typeof console !== 'undefined'
   ? console.warn.bind(console)
   : () => {};
 
-const localforageReplicator = keys => () => ({
-  keys,
+/**
+ * Replicates the state using localforage.
+ *
+ * @param {Object|Function} selector Optional
+ * @param {Boolean} overrideInitialState Optional
+ * @return {Object}
+ * @api public
+ */
+export default function localforageReplicator(selector, overrideInitialState) {
+  return {
+    init(storeKey, store, select) {
+      const { _initializedLocalforage = {} } = store;
+      const callback = () => (_initializedLocalforage[storeKey] = true);
+      const getValue = (key, initialValue, setValue) => {
+        localforage
+          .getItem(`${storeKey}/${key}`)
+          .then(value => {
+            setValue(key, parse(value));
+          }, error => {
+            warn(error);
+            setValue();
+          });
+      };
 
-  init(storeKey, store, setReady) {
-    if (!store._localforageInitialized) {
-      store._localforageInitialized = {};
-    }
-
-    localforage.getItem(storeKey).then(serializedState => {
-      const state = parse(serializedState);
-
-      setReady(true);
-
-      if (store._localforageInitialized[storeKey]) {
-        store.setState(state);
-      } else {
-        store._localforageInitialized[storeKey] = true;
-        store.setState({ ...state, ...store.getState() });
+      if (!store._initializedLocalforage) {
+        store._initializedLocalforage = _initializedLocalforage;
       }
-    }, error => {
-      warn(error);
-      setReady(true);
-    });
-  },
 
-  postReduction(storeKey, state, action) {
-    const serializedState = stringify(state);
+      if (overrideInitialState || _initializedLocalforage[storeKey]) {
+        select(selector, getValue, callback);
+      } else {
+        select(selector, (key, initialValue, setValue) => {
+          if (typeof initialValue !== 'undefined') {
+            setValue();
+          } else {
+            getValue(key, initialValue, setValue);
+          }
+        }, callback);
+      }
+    },
 
-    localforage.setItem(storeKey, serializedState).catch(warn);
-  }
-});
-
-export default localforageReplicator;
+    postReduction(storeKey, select, previousState) {
+      select(selector, (key, value) => {
+        if (previousState[key] !== value) {
+          localforage
+            .setItem(`${storeKey}/${key}`, stringify(value))
+            .catch(warn);
+        }
+      });
+    }
+  };
+}
