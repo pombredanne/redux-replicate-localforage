@@ -1,6 +1,6 @@
 {
   "name": "redux-replicate-localforage",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Replicator for `redux-replicate` designed to locally persist the state of `redux` stores using `localforage`.",
   "main": "./lib/index.js",
   "scripts": {
@@ -40,5 +40,8 @@
   "dependencies": {
     "deserializable": "^0.2.2",
     "localforage": "^1.3.0"
+  },
+  "peerDependencies": {
+    "redux-replicate": "^1.0.0"
   }
 }
