@@ -10,7 +10,11 @@ export default {
     localforage
       .getItem(key)
       .then(state => {
-        setState(parse(state));
+        if (state === null) {
+          setState();
+        } else {
+          setState(parse(state));
+        }
       }, error => {
         warn(error);
         setState();
