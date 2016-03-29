@@ -9,7 +9,7 @@ Replicator for [`redux-replicate`](https://github.com/loggur/redux-replicate) de
 ## Installation
 
 ```
-npm install redux-replicate redux-replicate-localforage --save
+npm install redux-replicate-localforage --save
 ```
 
 
@@ -17,45 +17,19 @@ npm install redux-replicate redux-replicate-localforage --save
 
 Use with [`redux-replicate`](https://github.com/loggur/redux-replicate).
 
-```js
-localforageReplicator (Optional Object keys)
-```
-
-The `keys` argument becomes the `keys` key in your replicator.
-
-So to replicate all keys:
-```js
-import replicate from 'redux-replicate';
-import localforageReplicator from 'redux-replicate-localforage';
-
-replicate('someStore', localforageReplicator())
-```
-
-Only `someKey`:
-```js
-replicate('someStore', localforageReplicator({ someKey: true }))
-```
-
-All keys except for `someKey`:
-```js
-replicate('someStore', localforageReplicator({ someKey: false }))
-```
-
 
 ## Example using [`react-redux-provide`](https://github.com/loggur/react-redux-provide)
 
 ```js
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { unshiftEnhancer } from 'react-redux-provide';
-import replicate from 'redux-replicate';
-import localforageReplicator from 'redux-replicate-localforage';
-import { coolMap } from './providers/index';
-import { App } from './components/index';
+// src/replication.js
 
-unshiftEnhancer({ coolMap }, replicate('coolMap', localforageReplicator()));
+import localforage from 'redux-replicate-localforage';
+import providers from './providers/index';
 
-ReactDOM.render(<App/>, document.getElementById('root'));
+providers.entry.theme = {
+  reducerKeys: ['themeName'],
+  replicator: localforage
+};
 ```
 
 
@@ -64,7 +38,7 @@ ReactDOM.render(<App/>, document.getElementById('root'));
 ```js
 import { createStore, combineReducers, compose } from 'redux';
 import replicate from 'redux-replicate';
-import localforageReplicator from 'redux-replicate-localforage';
+import localforage from 'redux-replicate-localforage';
 import reducers from './reducers';
 
 const initialState = {
@@ -72,8 +46,8 @@ const initialState = {
   very: 'cool'
 };
 
-const storeKey = 'superCoolStorageUnit';
-const replication = replicate(storeKey, localforageReplicator());
+const key = 'superCoolStorageUnit';
+const replication = replicate(key, true, localforage);
 const create = compose(replication)(createStore);
 const store = create(combineReducers(reducers), initialState);
 ```
