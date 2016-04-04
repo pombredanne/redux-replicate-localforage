@@ -6,6 +6,14 @@
 Replicator for [`redux-replicate`](https://github.com/loggur/redux-replicate) designed to locally persist the state of [`redux`](https://github.com/rackt/redux) stores using [`localforage`](https://github.com/mozilla/localforage).
 
 
+## Table of contents
+
+1.  [Installation](#installation)
+2.  [Usage](#usage)
+3.  [Example using `react-redux-provide`](#example-using-react-redux-provide)
+4.  [Example using `compose`](#example-using-compose)
+
+
 ## Installation
 
 ```
