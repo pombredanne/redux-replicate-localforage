@@ -32,9 +32,9 @@ Use with [`redux-replicate`](https://github.com/loggur/redux-replicate).
 // src/replication.js
 
 import localforage from 'redux-replicate-localforage';
-import providers from './providers/index';
+import { theme } from './providers/index';
 
-providers.entry.theme = {
+theme.replication = {
   reducerKeys: ['themeName'],
   replicator: localforage
 };
