@@ -2,8 +2,8 @@ import localforage from 'localforage';
 import sha from 'sha-1';
 import { stringify, parse } from 'deserializable';
 
-const dataStore = localforage.createInstance('data');
-const queryStore = localforage.createInstance('queries');
+const dataStore = localforage.createInstance({ name: 'data' });
+const queryStore = localforage.createInstance({ name: 'queries' });
 
 const warn = typeof console !== 'undefined'
   ? console.warn.bind(console)
