@@ -55,7 +55,9 @@ const initialState = {
 };
 
 const key = 'superCoolStorageUnit';
-const replication = replicate(key, true, localforage);
+const reducerKeys = true;
+const replicator = localforage;
+const replication = replicate({ key, reducerKeys, replicator });
 const create = compose(replication)(createStore);
 const store = create(combineReducers(reducers), initialState);
 ```
