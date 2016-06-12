@@ -1,6 +1,6 @@
 {
   "name": "redux-replicate-localforage",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-alpha.2",
   "description": "Replicator for `redux-replicate` designed to locally persist the state of `redux` stores using `localforage`.",
   "main": "./lib/index.js",
   "scripts": {
