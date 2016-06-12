@@ -12,6 +12,7 @@ Replicator for [`redux-replicate`](https://github.com/loggur/redux-replicate) de
 2.  [Usage](#usage)
 3.  [Example using `react-redux-provide`](#example-using-react-redux-provide)
 4.  [Example using `compose`](#example-using-compose)
+5.  [Debouncing](#debouncing)
 
 
 ## Installation
@@ -60,4 +61,15 @@ const replicator = localforage;
 const replication = replicate({ key, reducerKeys, replicator });
 const create = compose(replication)(createStore);
 const store = create(combineReducers(reducers), initialState);
+```
+
+
+## Debouncing
+
+By default, a debounce occurs when writing the next state to localforage (during `onStateChange`).  The default timeout is 10 milliseconds.  You can change it by doing this:
+
+```js
+import localforage from 'redux-replicate-localforage';
+
+localforage.debounce = 20;
 ```
