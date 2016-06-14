@@ -47,7 +47,7 @@ function getQueryableKey(state, reducerKey = ENTIRE_STATE) {
     }
   }
 
-  if (state.length > 40) {
+  if (state && state.length > 40) {
     state = sha(state);
   }
 
