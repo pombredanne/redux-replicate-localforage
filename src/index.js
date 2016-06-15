@@ -39,16 +39,16 @@ function getItemKey(key, reducerKey) {
 }
 
 function getQueryableKey(state, reducerKey = ENTIRE_STATE) {
-  if (typeof state !== 'string') {
-    if (hasIDB) {
-      state = JSON.stringify(state);
-    } else {
-      state = stringify(state);
+  if (typeof state === 'undefined') {
+    state = EMPTY_STATE;
+  } else {
+    if (typeof state !== 'string') {
+      state = hasIDB ? JSON.stringify(state) : stringify(state);
     }
-  }
 
-  if (state && state.length > 40) {
-    state = sha(state);
+    if (state.length > 40) {
+      state = sha(state);
+    }
   }
 
   return `${encodeURIComponent(reducerKey)}=${encodeURIComponent(state)}`;
