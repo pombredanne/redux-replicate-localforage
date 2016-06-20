@@ -2,14 +2,16 @@ import localforage from 'localforage';
 import sha from 'sha-1';
 import { stringify as _stringify, parse as _parse } from 'deserializable';
 
+const dataStore = localforage.createInstance({ name: 'data' });
+const queryStore = localforage.createInstance({ name: 'queries' });
+
+window.localforageReplicator = { dataStore, queryStore };
+
 const hasIDB = Boolean(
-  typeof window !== 'undefined'
-  && (
-    window.indexedDB
-    || window.mozIndexedDB
-    || window.webkitIndexedDB
-    || window.msIndexedDB
-  )
+  window.indexedDB
+  || window.mozIndexedDB
+  || window.webkitIndexedDB
+  || window.msIndexedDB
 );
 
 const stringify = hasIDB ? value => value : _stringify;
@@ -18,12 +20,11 @@ const parse = hasIDB ? value => value : _parse;
 const ENTIRE_STATE = '__ENTIRE_STATE__';
 const EMPTY_STATE = '__EMPTY_STATE__';
 
-const dataStore = localforage.createInstance({ name: 'data' });
-const queryStore = localforage.createInstance({ name: 'queries' });
-
 const reading = {};
 const writing = {};
 const debounce = {};
+const writingQuery = {};
+let writingQueryCount = 0;
 let queryBuffer = null;
 
 const warn = typeof console !== 'undefined'
@@ -99,11 +100,16 @@ function getInitialState({ key, reducerKey }, setState) {
 
 function onStateChange({ key, reducerKey, queryable }, state, nextState) {
   const itemKey = getItemKey(key, reducerKey);
+  const queryableKey = queryable && getQueryableKey(nextState, reducerKey);
 
   writing[itemKey] = nextState;
 
-  if (queryable && !queryBuffer) {
-    queryBuffer = [];
+  if (queryable) {
+    writingQueryCount++;
+
+    if (!queryBuffer) {
+      queryBuffer = [];
+    }
   }
 
   clearTimeout(debounce[itemKey]);
@@ -118,8 +124,6 @@ function onStateChange({ key, reducerKey, queryable }, state, nextState) {
       return;
     }
 
-    const queryableKey = getQueryableKey(nextState, reducerKey);
-
     Promise
       .all([
         dataStore.getItem(itemKey),
@@ -129,8 +133,10 @@ function onStateChange({ key, reducerKey, queryable }, state, nextState) {
       .then(([ prevState, keyMap ]) => {
         const prevQueryableKey = getQueryableKey(prevState, reducerKey);
 
-        keyMap = keyMap || {};
+        keyMap = writingQuery[queryableKey] || keyMap || {};
         keyMap[key] = true;
+
+        writingQuery[queryableKey] = keyMap;
 
         Promise
           .all([
@@ -139,7 +145,11 @@ function onStateChange({ key, reducerKey, queryable }, state, nextState) {
           ])
           .then(([ prevKeyMap ]) => {
             if (prevKeyMap && queryableKey !== prevQueryableKey) {
+              prevKeyMap = writingQuery[prevQueryableKey] || prevKeyMap;
               delete prevKeyMap[key];
+
+              writingQuery[prevQueryableKey] = prevKeyMap;
+
               queryStore
                 .setItem(prevQueryableKey, prevKeyMap)
                 .then(clearQueryBuffer)
@@ -155,7 +165,9 @@ function onStateChange({ key, reducerKey, queryable }, state, nextState) {
 }
 
 function clearQueryBuffer() {
-  if (queryBuffer) {
+  writingQueryCount--;
+
+  if (queryBuffer && !writingQueryCount) {
     while (queryBuffer.length) {
       queryBuffer.shift()();
     }
