@@ -181,12 +181,59 @@ function handleQuery(query, options, setResult) {
   let semaphore = 1;
   const clear = () => {
     if (--semaphore === 0) {
+      const { begin = 0 } = options;
+
       keys = Object.keys(keys);
 
-      if (options.length) {
+      if (options.sortBy) {
+        for (let reducerKey in options.sortBy) {
+          if (options.select.indexOf(reducerKey) < 0) {
+            options.select.push(reducerKey);
+          }
+        }
+
+        getMultiple(keys, options.select, result => {
+          for (let reducerKey in options.sortBy) {
+            let ascending = options.sortBy[reducerKey] > 0;
+
+            result.sort(ascending
+              ? (a, b) => {
+                if (a[reducerKey] > b[reducerKey]) {
+                  return 1;
+                } else if (a[reducerKey] < b[reducerKey]) {
+                  return -1;
+                } else {
+                  return 0;
+                }
+              }
+              : (a, b) => {
+                if (a[reducerKey] < b[reducerKey]) {
+                  return 1;
+                } else if (a[reducerKey] > b[reducerKey]) {
+                  return -1;
+                } else {
+                  return 0;
+                }
+              }
+            );
+          }
+
+          if (typeof options.end !== 'undefined') {
+            setResult(result.slice(begin, options.end));
+          } else if (options.limit) {
+            setResult(result.slice(begin, begin + options.limit));
+          } else {
+            setResult(result);
+          }
+        });
+      } else if (options.length) {
         setResult(keys && keys.length || 0);
       } else if (options.keys) {
         setResult(keys);
+      } else if (typeof options.end !== 'undefined') {
+        setResult(result.slice(begin, options.end));
+      } else if (options.limit) {
+        setResult(result.slice(begin, begin + options.limit));
       } else {
         getMultiple(keys, options.select, setResult);
       }
