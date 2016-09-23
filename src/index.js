@@ -55,12 +55,12 @@ function getQueryableKey(state, reducerKey = ENTIRE_STATE) {
   return `${encodeURIComponent(reducerKey)}=${encodeURIComponent(state)}`;
 }
 
-function getInitialState({ key, reducerKey }, setState) {
+function getInitialState({ store, reducerKey, setState, setError }) {
+  const { key } = store;
   const itemKey = getItemKey(key, reducerKey);
   const handler = (error, state) => {
     if (error) {
-      warn(error);
-      setState();
+      setError(error);
     } else if (typeof state === 'undefined' || state === null) {
       setState();
     } else {
@@ -98,7 +98,8 @@ function getInitialState({ key, reducerKey }, setState) {
   }
 }
 
-function onStateChange({ key, reducerKey, queryable }, state, nextState) {
+function onStateChange({ store, reducerKey, nextState, queryable }) {
+  const { key } = store;
   const itemKey = getItemKey(key, reducerKey);
   const queryableKey = queryable && getQueryableKey(nextState, reducerKey);
 
@@ -176,7 +177,7 @@ function clearQueryBuffer() {
   }
 }
 
-function handleQuery(query, options, setResult) {
+function handleQuery({ query, options, setResult, setError }) {
   let keys = null;
   let semaphore = 1;
   const clear = () => {
@@ -235,7 +236,7 @@ function handleQuery(query, options, setResult) {
       } else if (options.limit) {
         setResult(result.slice(begin, begin + options.limit));
       } else {
-        getMultiple(keys, options.select, setResult);
+        getMultiple(keys, options.select, setResult, setError);
       }
     }
   };
@@ -264,7 +265,7 @@ function handleQuery(query, options, setResult) {
           clear();
         })
         .catch(error => {
-          warn(error);
+          setError(error);
           clear();
         });
     }
@@ -281,12 +282,17 @@ function handleQuery(query, options, setResult) {
   clear();
 }
 
-function getMultiple(keys, reducerKeys, setResult) {
+function getMultiple(keys, reducerKeys, setResult, setError) {
   const result = [];
+  let error = null;
   let semaphore = keys.length * reducerKeys.length;
   const clear = () => {
     if (--semaphore === 0) {
-      setResult(result);
+      if (error) {
+        setError(error);
+      } else {
+        setResult(result);
+      }
     }
   };
 
@@ -297,11 +303,19 @@ function getMultiple(keys, reducerKeys, setResult) {
       result.push(item);
 
       for (let reducerKey of reducerKeys) {
-        getInitialState({ key, reducerKey }, state => {
-          item[reducerKey] = state;
-          clear();
+        getInitialState({
+          // TODO: figure out how to pass a store to handleQuery
+          store: { key },
+          reducerKey,
+          setState: state => {
+            item[reducerKey] = state;
+            clear();
+          },
+          setError: err => {
+            error = err;
+          }
         });
-      }
+      });
     }
   } else {
     semaphore = 1;
