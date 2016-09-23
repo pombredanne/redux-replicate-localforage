@@ -315,7 +315,7 @@ function getMultiple(keys, reducerKeys, setResult, setError) {
             error = err;
           }
         });
-      });
+      }
     }
   } else {
     semaphore = 1;
