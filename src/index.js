@@ -268,7 +268,7 @@ function handleQuery({ query, options, setResult, setError }) {
         .then(keyMap => {
           if (keys) {
             for (let key in keys) {
-              if (typeof keyMap[key] === 'undefined') {
+              if (!keyMap || typeof keyMap[key] === 'undefined') {
                 delete keys[key];
               }
             }
