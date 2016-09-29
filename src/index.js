@@ -98,10 +98,21 @@ function getInitialState({ store, reducerKey, setState, setError }) {
   }
 }
 
-function onStateChange({ store, reducerKey, nextState, queryable }) {
+function onStateChange({
+  store,
+  reducerKey,
+  nextState,
+  queryable,
+  setStatus,
+  setError
+}) {
   const { key } = store;
   const itemKey = getItemKey(key, reducerKey);
   const queryableKey = queryable && getQueryableKey(nextState, reducerKey);
+  const handleError = error => {
+    warn(error);
+    setError(error);
+  };
 
   writing[itemKey] = nextState;
 
@@ -121,7 +132,8 @@ function onStateChange({ store, reducerKey, nextState, queryable }) {
     if (!queryable) {
       dataStore
         .setItem(itemKey, stringify(nextState))
-        .catch(warn);
+        .then(() => setStatus())
+        .catch(handleError);
       return;
     }
 
@@ -154,14 +166,16 @@ function onStateChange({ store, reducerKey, nextState, queryable }) {
               queryStore
                 .setItem(prevQueryableKey, prevKeyMap)
                 .then(clearQueryBuffer)
-                .catch(warn);
+                .then(() => setStatus())
+                .catch(handleError);
             } else {
               clearQueryBuffer();
+              setStatus();
             }
           })
-          .catch(warn);
+          .catch(handleError);
       })
-      .catch(warn);
+      .catch(handleError);
   }, localforageReplicator.debounce);
 }
 
